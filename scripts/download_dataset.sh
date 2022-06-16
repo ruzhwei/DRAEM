@@ -14,3 +14,4 @@ wget https://www.mydrive.ch/shares/38536/3830184030e49fe74747669442f0f282/downlo
 tar -xf mvtec_anomaly_detection.tar.xz
 rm mvtec_anomaly_detection.tar.xz
 
+https://drive.google.com/file/d/10sx1qGjACaDICnxCVxnF8u0VMi_CCNLp/view?usp=sharing
