@@ -91,7 +91,7 @@ class EncoderDiscriminative(nn.Module):
 class DecoderDiscriminative(nn.Module):
     def __init__(self, base_width, out_channels=1):
         super(DecoderDiscriminative, self).__init__()
-
+’‘’
         self.up_b = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                  nn.Conv2d(base_width * 8, base_width * 8, kernel_size=3, padding=1),
                                  nn.BatchNorm2d(base_width * 8),
@@ -104,7 +104,7 @@ class DecoderDiscriminative(nn.Module):
             nn.BatchNorm2d(base_width * 8),
             nn.ReLU(inplace=True)
         )
-
+‘’‘
 
         self.up1 = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                  nn.Conv2d(base_width * 8, base_width * 4, kernel_size=3, padding=1),
@@ -163,11 +163,8 @@ class DecoderDiscriminative(nn.Module):
         self.fin_out = nn.Sequential(nn.Conv2d(base_width, out_channels, kernel_size=3, padding=1))
 
     def forward(self, b1,b2,b3,b4,b5):
-        up_b = self.up_b(b6)
-        cat_b = torch.cat((up_b,b5),dim=1)
-        db_b = self.db_b(cat_b)
 
-        up1 = self.up1(db_b)
+        up1 = self.up1(b5)
         cat1 = torch.cat((up1,b4),dim=1)
         db1 = self.db1(cat1)
 
