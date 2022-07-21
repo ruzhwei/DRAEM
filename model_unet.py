@@ -91,20 +91,7 @@ class EncoderDiscriminative(nn.Module):
 class DecoderDiscriminative(nn.Module):
     def __init__(self, base_width, out_channels=1):
         super(DecoderDiscriminative, self).__init__()
-’‘’
-        self.up_b = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
-                                 nn.Conv2d(base_width * 8, base_width * 8, kernel_size=3, padding=1),
-                                 nn.BatchNorm2d(base_width * 8),
-                                 nn.ReLU(inplace=True))
-        self.db_b = nn.Sequential(
-            nn.Conv2d(base_width*(8+8), base_width*8, kernel_size=3, padding=1),
-            nn.BatchNorm2d(base_width*8),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(base_width * 8, base_width * 8, kernel_size=3, padding=1),
-            nn.BatchNorm2d(base_width * 8),
-            nn.ReLU(inplace=True)
-        )
-‘’‘
+
 
         self.up1 = nn.Sequential(nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                                  nn.Conv2d(base_width * 8, base_width * 4, kernel_size=3, padding=1),
