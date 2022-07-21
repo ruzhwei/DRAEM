@@ -22,10 +22,10 @@ class DiscriminativeSubNetwork(nn.Module):
         #self.segment_act = torch.nn.Sigmoid()
         self.out_features = out_features
     def forward(self, x):
-        b1,b2,b3,b4,b5,b6 = self.encoder_segment(x)
-        output_segment = self.decoder_segment(b1,b2,b3,b4,b5,b6)
+        b1,b2,b3,b4,b5 = self.encoder_segment(x)
+        output_segment = self.decoder_segment(b1,b2,b3,b4,b5)
         if self.out_features:
-            return output_segment, b2, b3, b4, b5, b6
+            return output_segment, b2, b3, b4, b5
         else:
             return output_segment
 
@@ -73,13 +73,6 @@ class EncoderDiscriminative(nn.Module):
             nn.ReLU(inplace=True))
 
         self.mp5 = nn.Sequential(nn.MaxPool2d(2))
-        self.block6 = nn.Sequential(
-            nn.Conv2d(base_width*8,base_width*8, kernel_size=3, padding=1),
-            nn.BatchNorm2d(base_width*8),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(base_width*8, base_width*8, kernel_size=3, padding=1),
-            nn.BatchNorm2d(base_width*8),
-            nn.ReLU(inplace=True))
 
 
     def forward(self, x):
@@ -93,8 +86,7 @@ class EncoderDiscriminative(nn.Module):
         mp4 = self.mp4(b4)
         b5 = self.block5(mp4)
         mp5 = self.mp5(b5)
-        b6 = self.block6(mp5)
-        return b1,b2,b3,b4,b5,b6
+        return b1,b2,b3,b4,b5
 
 class DecoderDiscriminative(nn.Module):
     def __init__(self, base_width, out_channels=1):
@@ -170,7 +162,7 @@ class DecoderDiscriminative(nn.Module):
 
         self.fin_out = nn.Sequential(nn.Conv2d(base_width, out_channels, kernel_size=3, padding=1))
 
-    def forward(self, b1,b2,b3,b4,b5,b6):
+    def forward(self, b1,b2,b3,b4,b5):
         up_b = self.up_b(b6)
         cat_b = torch.cat((up_b,b5),dim=1)
         db_b = self.db_b(cat_b)
