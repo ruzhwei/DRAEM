@@ -1,9 +1,10 @@
+from sklearn.metrics import roc_auc_score, average_precision_score
 import torch
 import torch.nn.functional as F
 from data_loader import MVTecDRAEMTestDataset
 from torch.utils.data import DataLoader
 import numpy as np
-from sklearn.metrics import roc_auc_score, average_precision_score
+
 from model_unet import ReconstructiveSubNetwork, DiscriminativeSubNetwork
 import os
 
@@ -48,13 +49,21 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
 
         model = ReconstructiveSubNetwork(in_channels=3, out_channels=3)
         model.load_state_dict(torch.load(os.path.join(checkpoint_path,run_name+".pckl"), map_location='cuda:0'))
+        print('ReconsbeforeCuda')
+        model.half()
         model.cuda()
+        print('ReconsafterCuda')
         model.eval()
+        print('ReconsafterEval')
 
         model_seg = DiscriminativeSubNetwork(in_channels=6, out_channels=2)
         model_seg.load_state_dict(torch.load(os.path.join(checkpoint_path, run_name+"_seg.pckl"), map_location='cuda:0'))
+        print('DisbeforeCuda')
+        model_seg.half()
         model_seg.cuda()
+        print('DisAfterCuda')
         model_seg.eval()
+        print('DisAfterEval')
 
         dataset = MVTecDRAEMTestDataset(mvtec_path + obj_name + "/test/", resize_shape=[img_dim, img_dim])
         dataloader = DataLoader(dataset, batch_size=1,
@@ -72,12 +81,13 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
         display_out_masks = torch.zeros((16 ,1 ,256 ,256)).cuda()
         display_in_masks = torch.zeros((16 ,1 ,256 ,256)).cuda()
         cnt_display = 0
+        print(len(dataloader))
         display_indices = np.random.randint(len(dataloader), size=(16,))
 
 
         for i_batch, sample_batched in enumerate(dataloader):
 
-            gray_batch = sample_batched["image"].cuda()
+            gray_batch = sample_batched["image"].type(torch.HalfTensor).cuda()
 
             is_normal = sample_batched["has_anomaly"].detach().numpy()[0 ,0]
             anomaly_score_gt.append(is_normal)
@@ -86,17 +96,18 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
 
             gray_rec = model(gray_batch)
             joined_in = torch.cat((gray_rec.detach(), gray_batch), dim=1)
-
+            print("model")
             out_mask = model_seg(joined_in)
             out_mask_sm = torch.softmax(out_mask, dim=1)
+            print("model_seg")
 
 
             if i_batch in display_indices:
                 t_mask = out_mask_sm[:, 1:, :, :]
-                display_images[cnt_display] = gray_rec[0]
-                display_gt_images[cnt_display] = gray_batch[0]
-                display_out_masks[cnt_display] = t_mask[0]
-                display_in_masks[cnt_display] = true_mask[0]
+                display_images[cnt_display] = gray_rec[0].cpu().detach()
+                display_gt_images[cnt_display] = gray_batch[0].cpu().detach()
+                display_out_masks[cnt_display] = t_mask[0].cpu().detach()
+                display_in_masks[cnt_display] = true_mask[0].cpu().detach()
                 cnt_display += 1
 
 
@@ -105,7 +116,7 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
             out_mask_averaged = torch.nn.functional.avg_pool2d(out_mask_sm[: ,1: ,: ,:], 21, stride=1,
                                                                padding=21 // 2).cpu().detach().numpy()
             image_score = np.max(out_mask_averaged)
-
+            
             anomaly_score_prediction.append(image_score)
 
             flat_true_mask = true_mask_cv.flatten()
@@ -113,6 +124,7 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
             total_pixel_scores[mask_cnt * img_dim * img_dim:(mask_cnt + 1) * img_dim * img_dim] = flat_out_mask
             total_gt_pixel_scores[mask_cnt * img_dim * img_dim:(mask_cnt + 1) * img_dim * img_dim] = flat_true_mask
             mask_cnt += 1
+            print('after for loop')
 
         anomaly_score_prediction = np.array(anomaly_score_prediction)
         anomaly_score_gt = np.array(anomaly_score_gt)
@@ -154,22 +166,7 @@ if __name__=="__main__":
 
     args = parser.parse_args()
 
-    obj_list = ['capsule',
-                 'bottle',
-                 'carpet',
-                 'leather',
-                 'pill',
-                 'transistor',
-                 'tile',
-                 'cable',
-                 'zipper',
-                 'toothbrush',
-                 'metal_nut',
-                 'hazelnut',
-                 'screw',
-                 'grid',
-                 'wood'
-                 ]
+    obj_list = ['capsule']
 
     with torch.cuda.device(args.gpu_id):
         test(obj_list,args.data_path, args.checkpoint_path, args.base_model_name)
