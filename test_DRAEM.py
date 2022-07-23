@@ -49,21 +49,15 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
 
         model = ReconstructiveSubNetwork(in_channels=3, out_channels=3)
         model.load_state_dict(torch.load(os.path.join(checkpoint_path,run_name+".pckl"), map_location='cuda:0'))
-        print('ReconsbeforeCuda')
         model.half()
         model.cuda()
-        print('ReconsafterCuda')
         model.eval()
-        print('ReconsafterEval')
 
         model_seg = DiscriminativeSubNetwork(in_channels=6, out_channels=2)
         model_seg.load_state_dict(torch.load(os.path.join(checkpoint_path, run_name+"_seg.pckl"), map_location='cuda:0'))
-        print('DisbeforeCuda')
         model_seg.half()
         model_seg.cuda()
-        print('DisAfterCuda')
         model_seg.eval()
-        print('DisAfterEval')
 
         dataset = MVTecDRAEMTestDataset(mvtec_path + obj_name + "/test/", resize_shape=[img_dim, img_dim])
         dataloader = DataLoader(dataset, batch_size=1,
