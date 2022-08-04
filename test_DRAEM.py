@@ -9,7 +9,7 @@ import numpy as np
 from model_unet import ReconstructiveSubNetwork, DiscriminativeSubNetwork
 import os
 
-def write_results_to_file(run_name, image_auc, pixel_auc, image_ap, pixel_ap):
+def write_results_to_file(run_name, image_auc, image_ap):
     if not os.path.exists('./outputs/'):
         os.makedirs('./outputs/')
 
@@ -18,21 +18,25 @@ def write_results_to_file(run_name, image_auc, pixel_auc, image_ap, pixel_ap):
         fin_str += "," + str(np.round(i, 3))
     fin_str += ","+str(np.round(np.mean(image_auc), 3))
     fin_str += "\n"
+    '''
     fin_str += "pixel_auc,"+run_name
     for i in pixel_auc:
         fin_str += "," + str(np.round(i, 3))
     fin_str += ","+str(np.round(np.mean(pixel_auc), 3))
     fin_str += "\n"
+    '''
     fin_str += "img_ap,"+run_name
     for i in image_ap:
         fin_str += "," + str(np.round(i, 3))
     fin_str += ","+str(np.round(np.mean(image_ap), 3))
     fin_str += "\n"
+    '''
     fin_str += "pixel_ap,"+run_name
     for i in pixel_ap:
         fin_str += "," + str(np.round(i, 3))
     fin_str += ","+str(np.round(np.mean(pixel_ap), 3))
     fin_str += "\n"
+    '''
     fin_str += "--------------------------\n"
 
     with open("./outputs/results.txt",'a+') as file:
