@@ -1,6 +1,7 @@
 from sklearn.metrics import roc_auc_score, average_precision_score
 import torch
 import torch.nn.functional as F
+import torch.nn as nn
 from data_loader import MVTecDRAEMTestDataset
 from torch.utils.data import DataLoader
 import numpy as np
@@ -53,8 +54,14 @@ def test(obj_names, mvtec_path, checkpoint_path, base_model_name):
         model.cuda()
         model.eval()
 
+        remove_block6 = nn.Sequential()
+        remove_up_b = nn.Sequential()
+        remove_db_b = nn.Sequential()
         model_seg = DiscriminativeSubNetwork(in_channels=6, out_channels=2)
         model_seg.load_state_dict(torch.load(os.path.join(checkpoint_path, run_name+"_seg.pckl"), map_location='cuda:0'))
+        model_seg.encoder_segment.block6 = remove_block6
+        model_seg.decoder_segment.up_b = remove_up_b
+        model_seg.decoder_segment.db_b = remove_db_b
         model_seg.half()
         model_seg.cuda()
         model_seg.eval()
